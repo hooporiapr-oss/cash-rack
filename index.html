@@ -15,7 +15,7 @@ body{margin:0;background:var(--ink);color:var(--paper);font-family:Archivo,syste
 
 nav{border-bottom:1px solid var(--line)}
 .navin{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
-.mark{font-weight:800;letter-spacing:-.02em;text-decoration:none;color:var(--paper)}
+.mark{font-weight:800;letter-spacing:-.01em;text-decoration:none;color:var(--paper);font-size:1.05rem}
 .mark em{font-style:normal;color:var(--gold)}
 .navr{display:flex;align-items:center;gap:14px}
 .navr a{color:var(--mute);text-decoration:none;font-size:.9rem}
@@ -70,10 +70,8 @@ footer a{color:var(--mute)}
 <body>
 
 <nav><div class="wrap navin">
-  <a class="mark" href="https://hoops.money/teams.html">Cash Flow <em>Hoops</em></a>
+  <a class="mark" href="index.html">CASH <em>RACK</em></a>
   <div class="navr">
-    <a href="https://hoops.money/" data-t="navGames">Play the games</a>
-    <a href="https://hoops.money/teams.html" data-t="navHow">How it works</a>
     <button id="lang" onclick="flip()">ES</button>
   </div>
 </div></nav>
@@ -166,6 +164,7 @@ footer a{color:var(--mute)}
 
 <footer><div class="wrap">
   <span data-t="footFree">Free to run.</span>
+  <a href="https://hoops.money/teams.html" data-t="footBrand">Basketball Money</a> ·
   Gostar Digital LLC — Puerto Rico ·
   <a href="mailto:cashflowhoops@gmail.com">cashflowhoops@gmail.com</a>
 </div></footer>
@@ -173,7 +172,6 @@ footer a{color:var(--mute)}
 <script>
 var T = {
   en:{
-    navGames:'Play the games', navHow:'How it works',
     kick:'A Basketball Money format',
     tag:'The shooting event that pays.',
     lede:'A timed shooting contest built to raise money. Sponsors pledge an amount for every point a player scores, the player shoots once, and half of everything collected goes straight to the program. Any coach can run it, anywhere, with their own scorekeepers.',
@@ -211,10 +209,9 @@ var T = {
     n4:'Three basketballs, and someone to feed them', n5:'A scoresheet',
     cta:'Run this with your team',
     sheet:'Print a scoresheet',
-    footFree:'Free to run.'
+    footFree:'Free to run.', footBrand:'Basketball Money'
   },
   es:{
-    navGames:'Juega los juegos', navHow:'Cómo funciona',
     kick:'Un formato de Basketball Money',
     tag:'El evento de tiro que recauda.',
     lede:'Un concurso de tiro con reloj, hecho para recaudar fondos. Los padrinos prometen una cantidad por cada punto que anote el jugador, el jugador tira una sola vez, y la mitad de todo lo cobrado va directo al programa. Cualquier entrenador puede correrlo, donde sea, con sus propios anotadores.',
@@ -252,7 +249,7 @@ var T = {
     n4:'Tres bolas, y alguien pasándolas', n5:'Una hoja de anotación',
     cta:'Corre esto con tu equipo',
     sheet:'Imprime una hoja',
-    footFree:'Gratis para correrlo.'
+    footFree:'Gratis para correrlo.', footBrand:'Basketball Money'
   }
 };
 
