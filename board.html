@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cash Rack — the board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#160E1C;--panel:#1D1426;--line:#3A2647;--gold:#E8B23A;--leather:#C9601F;--paper:#F7F3EF;--mute:#B7A8C2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:Archivo,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{width:min(900px,94vw);margin:0 auto;padding:22px 0 60px}
+
+.head{text-align:center;padding:10px 0 22px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.mark{font-size:.7rem;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:var(--leather);margin-bottom:10px}
+.mark em{font-style:normal;color:var(--gold)}
+h1{font-size:clamp(1.9rem,6vw,3rem);font-weight:800;letter-spacing:-.03em;line-height:1;margin:0 0 6px}
+.sub{color:var(--mute);font-size:.92rem;margin:0}
+
+/* The team total is the headline — it is the number worth sharing. */
+.total{
+  text-align:center;background:var(--panel);border:1px solid rgba(232,178,58,.35);
+  border-radius:20px;padding:26px 18px;margin-bottom:24px;
+}
+.total b{display:block;font-size:clamp(3.4rem,14vw,6rem);font-weight:800;letter-spacing:-.04em;line-height:.9;color:var(--gold)}
+.total span{display:block;color:var(--mute);font-size:.72rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase;margin-top:10px}
+.total .sub2{display:block;color:var(--mute);font-size:.92rem;letter-spacing:0;text-transform:none;font-weight:400;margin-top:10px}
+
+.row{
+  display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;
+  padding:14px 16px;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;margin-bottom:8px;
+}
+.row .rank{font-size:1.1rem;font-weight:800;color:var(--mute);text-align:center}
+.row .who{font-size:1.1rem;font-weight:800;letter-spacing:-.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .pts{font-size:1.5rem;font-weight:800;white-space:nowrap}
+.row .pts small{display:block;font-size:.66rem;font-weight:700;color:var(--mute);text-align:right;letter-spacing:.04em}
+
+.row.r1{border-color:rgba(232,178,58,.55);background:rgba(232,178,58,.09)}
+.row.r1 .rank,.row.r1 .pts{color:var(--gold)}
+.row.r2{border-color:rgba(200,200,220,.35)}
+.row.r3{border-color:rgba(201,96,31,.4)}
+.row.none .pts{color:#5C5468;font-size:1rem;font-weight:600}
+
+.empty{text-align:center;color:var(--mute);padding:40px 16px}
+footer{border-top:1px solid var(--line);margin-top:30px;padding-top:20px;text-align:center;color:var(--mute);font-size:.82rem}
+footer a{color:var(--mute)}
+#lang{position:fixed;top:14px;right:14px;background:rgba(0,0,0,.5);border:1px solid var(--line);color:var(--mute);border-radius:999px;padding:6px 13px;font:inherit;font-size:.76rem;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<button id="lang" onclick="flip()">ES</button>
+<div class="wrap" id="app"><p class="empty">Loading…</p></div>
+
+<script>
+var SB_URL='https://sdaphocueugzfvjovuxd.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkYXBob2N1ZXVnemZ2am92dXhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjQyMDgsImV4cCI6MjA5OTIwMDIwOH0.pDAzf4P6dD9eNEBlnP95SdF5BI-R84-Rdc0vKzYcn7M';
+
+// ══════════════════════════════════════════════════════
+//  CASH RACK — the board.
+//
+//  Read-only, so it needs no key: anyone with the link can see how
+//  the event went. Built to be put on a screen or screenshotted
+//  once the last player has shot.
+// ══════════════════════════════════════════════════════
+var params = new URLSearchParams(location.search);
+var CH = params.get('c');
+var app = document.getElementById('app');
+
+var LANG = 'en';
+try { LANG = localStorage.getItem('cfh_lang') || ((navigator.language||'').toLowerCase().startsWith('es') ? 'es' : 'en'); } catch(e){}
+
+var S = {
+  en:{
+    kick:'Cash Rack', teamTotal:'Points scored',
+    shot:'{D} of {T} players shot',
+    yetToShoot:'Yet to shoot', pts:'points',
+    noLink:'No event in this link.',
+    loadFail:'Could not load the board. Try again in a moment.',
+    nobody:'Nobody has shot yet.',
+    foot:'Every attempt scores 1 · A made three adds 3 · A made foul shot adds 2',
+    brand:'Basketball Money'
+  },
+  es:{
+    kick:'Cash Rack', teamTotal:'Puntos anotados',
+    shot:'{D} de {T} jugadores tiraron',
+    yetToShoot:'Falta tirar', pts:'puntos',
+    noLink:'No hay evento en este enlace.',
+    loadFail:'No se pudo cargar el tablero. Intenta en un momento.',
+    nobody:'Todavía no ha tirado nadie.',
+    foot:'Cada tiro intentado vale 1 · Un triple suma 3 · Un tiro libre suma 2',
+    brand:'Basketball Money'
+  }
+};
+function T(k, v){
+  var out = (S[LANG] && S[LANG][k]) || S.en[k] || k;
+  if (v) Object.keys(v).forEach(function(x){ out = out.split('{'+x+'}').join(v[x]); });
+  return out;
+}
+function flip(){
+  LANG = LANG === 'en' ? 'es' : 'en';
+  try { localStorage.setItem('cfh_lang', LANG); } catch(e){}
+  document.getElementById('lang').textContent = LANG === 'en' ? 'ES' : 'EN';
+  load();
+}
+document.getElementById('lang').textContent = LANG === 'en' ? 'ES' : 'EN';
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(m){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+
+function get(path){
+  return fetch(SB_URL + '/rest/v1/' + path, {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  }).then(function(r){ if (!r.ok) throw new Error('bad'); return r.json(); });
+}
+
+if (!CH){
+  app.innerHTML = '<p class="empty">' + T('noLink') + '</p>';
+} else {
+  load();
+}
+
+function load(){
+  get('challenges?id=eq.' + encodeURIComponent(CH) + '&select=campaign_id,name,campaigns(name)')
+  .then(function(rows){
+    if (!rows || !rows.length) throw new Error('none');
+    var ch = rows[0];
+    return Promise.all([
+      Promise.resolve(ch),
+      get('players?campaign_id=eq.' + encodeURIComponent(ch.campaign_id) + '&select=id,name&order=name.asc'),
+      get('challenge_runs?challenge_id=eq.' + encodeURIComponent(CH) + '&select=player_id,points,attempts,threes,fouls')
+    ]);
+  })
+  .then(function(res){ render(res[0], res[1] || [], res[2] || []); })
+  .catch(function(e){
+    console.error(e);
+    app.innerHTML = '<p class="empty">' + T('loadFail') + '</p>';
+  });
+}
+
+function render(ch, players, runs){
+  var by = {}; runs.forEach(function(r){ by[r.player_id] = r; });
+
+  var scored = players.filter(function(p){ return by[p.id]; });
+  var waiting = players.filter(function(p){ return !by[p.id]; });
+  var total = scored.reduce(function(s, p){ return s + (by[p.id].points || 0); }, 0);
+
+  scored.sort(function(a, b){ return by[b.id].points - by[a.id].points; });
+
+  var team = (ch.campaigns && ch.campaigns.name) || '';
+
+  app.innerHTML =
+    '<div class="head">' +
+      '<div class="mark">Cash <em>Rack</em></div>' +
+      '<h1>' + esc(team) + '</h1>' +
+      '<p class="sub">' + esc(ch.name || '') + '</p>' +
+    '</div>' +
+
+    '<div class="total">' +
+      '<b>' + total + '</b>' +
+      '<span>' + T('teamTotal') + '</span>' +
+      '<span class="sub2">' + T('shot', { D: scored.length, T: players.length }) + '</span>' +
+    '</div>' +
+
+    (scored.length
+      ? scored.map(function(p, i){
+          var r = by[p.id];
+          return '<div class="row ' + (i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '') + '">' +
+            '<span class="rank">' + (i + 1) + '</span>' +
+            '<span class="who">' + esc(p.name) + '</span>' +
+            '<span class="pts">' + r.points +
+              '<small>' + r.attempts + ' shots · ' + r.threes + ' threes · ' + r.fouls + ' FT</small>' +
+            '</span>' +
+          '</div>';
+        }).join('')
+      : '<p class="empty">' + T('nobody') + '</p>') +
+
+    (waiting.length
+      ? '<p class="sub" style="margin:18px 0 8px;color:var(--mute);font-size:.8rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;">' +
+          T('yetToShoot') + '</p>' +
+        waiting.map(function(p){
+          return '<div class="row none">' +
+            '<span class="rank">·</span>' +
+            '<span class="who" style="font-weight:600;color:var(--mute)">' + esc(p.name) + '</span>' +
+            '<span class="pts">—</span>' +
+          '</div>';
+        }).join('')
+      : '') +
+
+    '<footer>' + T('foot') + '<br>' +
+      '<a href="https://hoops.money/teams.html">' + T('brand') + '</a> · Gostar Digital LLC</footer>';
+}
+</script>
+</body>
+</html>
