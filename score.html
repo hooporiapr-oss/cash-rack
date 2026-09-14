@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Cash Rack — scoring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#160E1C;--panel:#1D1426;--line:#3A2647;--gold:#E8B23A;--leather:#C9601F;--paper:#F7F3EF;--mute:#B7A8C2;--good:#4ED6A1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:Archivo,system-ui,sans-serif;font-size:16px;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+.wrap{width:min(680px,94vw);margin:0 auto;padding:16px 0 60px}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.mark{font-weight:800;letter-spacing:-.01em}
+.mark em{font-style:normal;color:var(--gold)}
+.top .team{color:var(--mute);font-size:.9rem;text-align:right}
+
+.key{
+  display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  margin-bottom:16px;background:var(--panel);
+}
+.key div{flex:1;padding:10px 8px;text-align:center;border-right:1px solid var(--line)}
+.key div:last-child{border-right:none}
+.key b{display:block;font-size:1.05rem;font-weight:800;line-height:1}
+.key span{display:block;color:var(--mute);font-size:.68rem;margin-top:3px}
+
+/* One player per card. Big fields, because this is being filled in
+   on a tablet at the side of a court, often standing up. */
+.p{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.p.done{border-color:rgba(78,214,161,.4)}
+.p.locked{opacity:.65}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.pname{font-weight:800;font-size:1.05rem;letter-spacing:-.01em}
+.ptot{font-weight:800;font-size:1.35rem;color:var(--gold);white-space:nowrap}
+.ptot.none{color:#5C5468;font-size:1rem;font-weight:600}
+
+.fields{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:8px;align-items:end}
+@media(max-width:520px){.fields{grid-template-columns:repeat(3,1fr);}
+  .fields .save{grid-column:1/-1;margin-top:4px}}
+.f label{display:block;font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
+.f input{
+  width:100%;padding:14px 10px;border-radius:10px;text-align:center;
+  border:1px solid #ffffff1f;background:#120C18;color:#fff;
+  font-family:inherit;font-size:1.3rem;font-weight:800;
+}
+.f input:focus{outline:none;border-color:var(--gold)}
+.save{
+  padding:14px 18px;border:none;border-radius:10px;background:var(--gold);color:#20140B;
+  font-family:inherit;font-weight:800;font-size:.9rem;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
+}
+.save:disabled{opacity:.5;cursor:default}
+.save.ok{background:var(--good)}
+.pmsg{font-size:.8rem;font-weight:600;margin-top:8px;min-height:18px}
+.lockline{font-size:.82rem;color:var(--mute)}
+
+.summary{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(22,14,28,0),var(--ink) 22%);padding:18px 0 10px;margin-top:6px}
+.summary .box{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.summary b{font-size:1.5rem;font-weight:800;color:var(--gold)}
+.summary span{color:var(--mute);font-size:.88rem}
+.summary a{color:var(--gold);font-size:.88rem;text-decoration:none;font-weight:700}
+
+.note{color:var(--mute);font-size:.85rem;line-height:1.5;margin:14px 0 0}
+.bad{color:#ff8888}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+  <p style="color:var(--mute)">Loading…</p>
+</div>
+
+<script>
+var SB_URL='https://sdaphocueugzfvjovuxd.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkYXBob2N1ZXVnemZ2am92dXhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjQyMDgsImV4cCI6MjA5OTIwMDIwOH0.pDAzf4P6dD9eNEBlnP95SdF5BI-R84-Rdc0vKzYcn7M';
+
+// ══════════════════════════════════════════════════════
+//  CASH RACK — scoring.
+//
+//  For the person with the tablet at the side of the court. Three
+//  numbers per player, saved one player at a time so a dropped
+//  connection never costs more than one entry.
+//
+//  The scorer key in the link is what allows a write. The points are
+//  recalculated by the database rather than trusted from here, so an
+//  edited page cannot inflate anyone's score.
+// ══════════════════════════════════════════════════════
+var params = new URLSearchParams(location.search);
+var CH = params.get('c');
+var KEY = params.get('k');
+
+var app = document.getElementById('app');
+var LANG = 'en';
+try { LANG = localStorage.getItem('cfh_lang') || ((navigator.language||'').toLowerCase().startsWith('es') ? 'es' : 'en'); } catch(e){}
+
+var S = {
+  en:{
+    noLink:'This link is missing something',
+    noLinkNote:'A scoring link needs both the event and the scorer key. Ask whoever set the event up for a fresh link.',
+    loadFail:'Could not load this event. Check the link, or try again.',
+    scoring:'Scoring',
+    keyAtt:'Shots', keyThree:'Threes', keyFoul:'Foul shots',
+    keyAttSub:'1 each', keyThreeSub:'+3 each', keyFoulSub:'+2 each',
+    lAtt:'Shots taken', lThree:'Threes made', lFoul:'FTs made',
+    save:'Save', saved:'Saved', noScore:'—',
+    locked:'Invoiced — this score is final',
+    teamTotal:'Team total', playersIn:'{D} of {T} scored',
+    board:'Open the board →',
+    errNumbers:'More made than taken — check the numbers.',
+    errAtt:'Enter how many shots were taken.',
+    errKey:'This link cannot record scores. Ask for a fresh one.',
+    errSave:'Could not save — check the connection and try again.',
+    note:'Enter each player as they finish. You can change a score any time until invoices go out.'
+  },
+  es:{
+    noLink:'A este enlace le falta algo',
+    noLinkNote:'Un enlace de anotación necesita el evento y la clave del anotador. Pídele uno nuevo a quien montó el evento.',
+    loadFail:'No se pudo cargar este evento. Verifica el enlace o intenta otra vez.',
+    scoring:'Anotación',
+    keyAtt:'Tiros', keyThree:'Triples', keyFoul:'Tiros libres',
+    keyAttSub:'1 cada uno', keyThreeSub:'+3 cada uno', keyFoulSub:'+2 cada uno',
+    lAtt:'Tiros hechos', lThree:'Triples', lFoul:'Libres',
+    save:'Guardar', saved:'Guardado', noScore:'—',
+    locked:'Facturado — esta puntuación es final',
+    teamTotal:'Total del equipo', playersIn:'{D} de {T} anotados',
+    board:'Abrir el tablero →',
+    errNumbers:'Más anotados que intentados — revisa los números.',
+    errAtt:'Entra cuántos tiros se hicieron.',
+    errKey:'Este enlace no puede guardar puntuaciones. Pide uno nuevo.',
+    errSave:'No se pudo guardar — revisa la conexión e intenta otra vez.',
+    note:'Entra cada jugador según termine. Puedes cambiar una puntuación en cualquier momento hasta que salgan las facturas.'
+  }
+};
+function T(k, v){
+  var out = (S[LANG] && S[LANG][k]) || S.en[k] || k;
+  if (v) Object.keys(v).forEach(function(x){ out = out.split('{'+x+'}').join(v[x]); });
+  return out;
+}
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(m){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+
+function get(path){
+  return fetch(SB_URL + '/rest/v1/' + path, {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  }).then(function(r){ if (!r.ok) throw new Error('bad'); return r.json(); });
+}
+
+function points(a, t, f){ return (a||0) + (t||0)*3 + (f||0)*2; }
+
+if (!CH || !KEY){
+  app.innerHTML = '<div class="p"><div class="pname">' + T('noLink') + '</div>' +
+                  '<p class="note">' + T('noLinkNote') + '</p></div>';
+} else {
+  load();
+}
+
+var PLAYERS = [], RUNS = {}, INVOICED = {}, TEAM = '';
+
+function load(){
+  get('challenges?id=eq.' + encodeURIComponent(CH) + '&select=campaign_id,name,campaigns(name)')
+  .then(function(rows){
+    if (!rows || !rows.length) throw new Error('no challenge');
+    var ch = rows[0];
+    TEAM = (ch.campaigns && ch.campaigns.name) || ch.name || '';
+
+    return Promise.all([
+      get('players?campaign_id=eq.' + encodeURIComponent(ch.campaign_id) + '&select=id,name&order=name.asc'),
+      get('challenge_runs?challenge_id=eq.' + encodeURIComponent(CH) + '&select=player_id,attempts,threes,fouls,points'),
+      get('pledges?challenge_id=eq.' + encodeURIComponent(CH) + '&select=player_id,invoiced_at')
+    ]);
+  })
+  .then(function(res){
+    PLAYERS = res[0] || [];
+    RUNS = {}; (res[1] || []).forEach(function(r){ RUNS[r.player_id] = r; });
+    INVOICED = {};
+    (res[2] || []).forEach(function(p){ if (p.player_id && p.invoiced_at) INVOICED[p.player_id] = true; });
+    render();
+  })
+  .catch(function(e){
+    console.error(e);
+    app.innerHTML = '<p class="bad">' + T('loadFail') + '</p>';
+  });
+}
+
+function render(){
+  var done = PLAYERS.filter(function(p){ return RUNS[p.id]; }).length;
+  var total = PLAYERS.reduce(function(sum, p){
+    return sum + (RUNS[p.id] ? RUNS[p.id].points : 0);
+  }, 0);
+
+  app.innerHTML =
+    '<div class="top">' +
+      '<div class="mark">CASH <em>RACK</em></div>' +
+      '<div class="team">' + esc(TEAM) + '<br><span style="font-size:.78rem">' + T('scoring') + '</span></div>' +
+    '</div>' +
+
+    '<div class="key">' +
+      '<div><b>' + T('keyAtt') + '</b><span>' + T('keyAttSub') + '</span></div>' +
+      '<div><b>' + T('keyThree') + '</b><span>' + T('keyThreeSub') + '</span></div>' +
+      '<div><b>' + T('keyFoul') + '</b><span>' + T('keyFoulSub') + '</span></div>' +
+    '</div>' +
+
+    PLAYERS.map(playerCard).join('') +
+
+    '<p class="note">' + T('note') + '</p>' +
+
+    '<div class="summary"><div class="box">' +
+      '<span>' + T('playersIn', { D: done, T: PLAYERS.length }) + '</span>' +
+      '<span><b>' + total + '</b> <span style="font-size:.8rem">' + T('teamTotal').toLowerCase() + '</span></span>' +
+      '<a href="board.html?c=' + encodeURIComponent(CH) + '" target="_blank" rel="noopener">' + T('board') + '</a>' +
+    '</div></div>';
+
+  PLAYERS.forEach(function(p){
+    var btn = document.getElementById('save-' + p.id);
+    if (btn) btn.addEventListener('click', function(){ save(p.id); });
+  });
+}
+
+function playerCard(p){
+  var r = RUNS[p.id];
+  var locked = INVOICED[p.id] && r;
+
+  return '<div class="p' + (r ? ' done' : '') + (locked ? ' locked' : '') + '" id="card-' + p.id + '">' +
+    '<div class="phead">' +
+      '<span class="pname">' + esc(p.name) + '</span>' +
+      '<span class="ptot' + (r ? '' : ' none') + '" id="tot-' + p.id + '">' +
+        (r ? r.points : T('noScore')) + '</span>' +
+    '</div>' +
+
+    (locked
+      ? '<div class="lockline">' + T('locked') + '</div>'
+      : '<div class="fields">' +
+          field(p.id, 'att', T('lAtt'), r ? r.attempts : '', 15) +
+          field(p.id, 'th',  T('lThree'), r ? r.threes : '', 12) +
+          field(p.id, 'ft',  T('lFoul'), r ? r.fouls : '', 3) +
+          '<button class="save" id="save-' + p.id + '">' + T('save') + '</button>' +
+        '</div>' +
+        '<div class="pmsg" id="msg-' + p.id + '"></div>') +
+  '</div>';
+}
+
+function field(pid, kind, label, value, max){
+  return '<div class="f"><label>' + label + '</label>' +
+    '<input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="' + max + '" ' +
+    'id="' + kind + '-' + pid + '" value="' + (value === 0 || value ? value : '') + '" ' +
+    'oninput="preview(\'' + pid + '\')"></div>';
+}
+
+// Shows the total as the scorekeeper types, before anything is saved,
+// so an obviously wrong number is caught on the spot.
+function preview(pid){
+  var a = parseInt(document.getElementById('att-' + pid).value, 10);
+  var t = parseInt(document.getElementById('th-' + pid).value, 10) || 0;
+  var f = parseInt(document.getElementById('ft-' + pid).value, 10) || 0;
+  var el = document.getElementById('tot-' + pid);
+  if (isNaN(a)){ el.textContent = T('noScore'); el.className = 'ptot none'; return; }
+  el.textContent = points(a, t, f);
+  el.className = 'ptot';
+}
+
+function save(pid){
+  var msg = document.getElementById('msg-' + pid);
+  var btn = document.getElementById('save-' + pid);
+
+  var a = parseInt(document.getElementById('att-' + pid).value, 10);
+  var t = parseInt(document.getElementById('th-' + pid).value, 10) || 0;
+  var f = parseInt(document.getElementById('ft-' + pid).value, 10) || 0;
+
+  if (isNaN(a) || a < 0){ msg.className = 'pmsg bad'; msg.textContent = T('errAtt'); return; }
+  if (t + f > a){ msg.className = 'pmsg bad'; msg.textContent = T('errNumbers'); return; }
+
+  btn.disabled = true;
+  msg.className = 'pmsg';
+  msg.style.color = 'var(--mute)';
+  msg.textContent = '…';
+
+  fetch(SB_URL + '/rest/v1/rpc/record_cashrack_score', {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      p_challenge: CH, p_key: KEY, p_player: pid,
+      p_att: a, p_threes: t, p_fouls: f
+    })
+  })
+  .then(function(r){ if (!r.ok) throw new Error('bad'); return r.json(); })
+  .then(function(out){
+    btn.disabled = false;
+    if (out && out.ok){
+      RUNS[pid] = { player_id: pid, attempts: a, threes: t, fouls: f, points: out.points };
+      document.getElementById('card-' + pid).classList.add('done');
+      document.getElementById('tot-' + pid).textContent = out.points;
+      btn.classList.add('ok');
+      btn.textContent = T('saved');
+      msg.textContent = '';
+      setTimeout(function(){ btn.classList.remove('ok'); btn.textContent = T('save'); }, 1400);
+      updateSummary();
+      return;
+    }
+    msg.className = 'pmsg bad';
+    msg.textContent = (out && out.reason === 'key') ? T('errKey') : T('errNumbers');
+  })
+  .catch(function(e){
+    console.error('Score save:', e);
+    btn.disabled = false;
+    msg.className = 'pmsg bad';
+    msg.textContent = T('errSave');
+  });
+}
+
+function updateSummary(){
+  var done = PLAYERS.filter(function(p){ return RUNS[p.id]; }).length;
+  var total = PLAYERS.reduce(function(s, p){ return s + (RUNS[p.id] ? RUNS[p.id].points : 0); }, 0);
+  var box = document.querySelector('.summary .box');
+  if (!box) return;
+  box.children[0].textContent = T('playersIn', { D: done, T: PLAYERS.length });
+  box.children[1].innerHTML = '<b>' + total + '</b> <span style="font-size:.8rem">' + T('teamTotal').toLowerCase() + '</span>';
+}
+</script>
+</body>
+</html>
