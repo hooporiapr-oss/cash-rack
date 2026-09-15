@@ -89,6 +89,12 @@ h1 span{color:var(--gold)}
 <div id="intro">
   <div class="mark">Cash <em>Rack</em></div>
   <h1 data-t="h1">Learn the <span data-t="h1b">spots</span></h1>
+
+  <div id="officialBanner" style="display:none;max-width:400px;width:100%;padding:14px 16px;border-radius:14px;border:2px solid rgba(232,178,58,.45);background:rgba(232,178,58,.08);margin:0 0 18px;text-align:center;">
+    <div style="font-size:.6rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;" data-t="officialKick">Official run</div>
+    <div style="font-size:1.05rem;font-weight:800;" id="obPlayer">—</div>
+    <div style="font-size:.8rem;color:#C9C0A8;margin-top:6px;line-height:1.45;" id="obNote" data-t="officialNote">This run counts. Your sponsors pay on the points you score, and you only get one.</div>
+  </div>
   <p class="lede" data-t="lede">The six stations light up in order. Watch, then tap them back the same way. Every round adds one more. Know the floor before you shoot it for real.</p>
   <button class="big" id="startBtn" data-t="start">▶ Start</button>
   <a class="line" href="index.html" data-t="rules">Read the Cash Rack rules</a>
@@ -110,6 +116,8 @@ h1 span{color:var(--gold)}
 <div id="end">
   <div class="num" id="endNum">0</div>
   <div class="numlbl" data-t="endLbl">Longest chain</div>
+  <div id="endPts" style="font-size:1.6rem;font-weight:800;color:var(--paper);margin-top:14px;"></div>
+  <div id="saveStatus" style="font-size:.85rem;font-weight:700;margin-top:10px;min-height:20px;"></div>
   <p class="endnote" id="endNote"></p>
   <button class="big" id="againBtn" data-t="again">▶ Go again</button>
   <a class="line" href="index.html" data-t="rules2">Read the Cash Rack rules</a>
@@ -130,6 +138,23 @@ h1 span{color:var(--gold)}
 
 var $ = function(id){ return document.getElementById(id); };
 
+var SB_URL='https://sdaphocueugzfvjovuxd.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkYXBob2N1ZXVnemZ2am92dXhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjQyMDgsImV4cCI6MjA5OTIwMDIwOH0.pDAzf4P6dD9eNEBlnP95SdF5BI-R84-Rdc0vKzYcn7M';
+var HOME = 'https://hoops.money';
+
+// A challenge run works exactly as it does in the memory games:
+// practice is free and unrecorded, and an official run needs the
+// player's own key. Opened without those, this is just practice.
+var params = new URLSearchParams(location.search);
+var CHALLENGE_ID = params.get('c') || null;
+var PLAYER_ID = params.get('p') || null;
+var RUN_KEY = params.get('k');
+var TRYOUT = params.get('tryout');
+var IS_OFFICIAL = !TRYOUT && !!(CHALLENGE_ID && PLAYER_ID && RUN_KEY && params.get('official') === '1');
+var GAME = 'spots';
+
+function pointsFor(level){ return level > 0 ? (level * (level + 1)) / 2 : 0; }
+
 var LANG = 'en';
 try { LANG = localStorage.getItem('cfh_lang') || ((navigator.language||'').toLowerCase().startsWith('es') ? 'es' : 'en'); } catch(e){}
 
@@ -144,6 +169,18 @@ var S = {
     ready:'Watch the floor', watch:'Watch', yourTurn:'Tap them back', nice:'✅ Good',
     wrong:'Wrong spot', endLbl:'Longest chain',
     bestLine:'Your best so far: <b>{B}</b>',
+    pointsWord:'points',
+    startOfficial:'▶ Start official run', startPractice:'▶ Practice run',
+    officialKick:'Official run',
+    officialNote:'This run counts. Your sponsors pay on the points you score, and you only get one.',
+    alreadyRun:'Your official run is already in: <b>{L} rounds, {P} points</b>. Keep practising if you like — that score is final.',
+    confirmOfficial:'This is your official run. Your sponsors pay on the points you score, and you only get one. Ready?',
+    practiceOnly:'Practice run.',
+    recording:'Recording your official run…',
+    recorded:'✓ Official run recorded — {P} points.',
+    wasAlready:'Your official run was already recorded. This one was practice.',
+    wrongLink:'This link cannot record an official run — ask your coach for your own link.',
+    noServer:'Could not reach the server — contact your coach before playing again.',
     endShort:'Everyone starts here. Go again — it comes quickly.',
     endMid:'That is the whole floor held in your head. Most of it, anyway.',
     endLong:'You know this floor. Go shoot it.'
@@ -158,6 +195,18 @@ var S = {
     ready:'Observa la cancha', watch:'Observa', yourTurn:'Tócalas de vuelta', nice:'✅ Bien',
     wrong:'Punto equivocado', endLbl:'Cadena más larga',
     bestLine:'Tu mejor hasta ahora: <b>{B}</b>',
+    pointsWord:'puntos',
+    startOfficial:'▶ Empezar corrida oficial', startPractice:'▶ Corrida de práctica',
+    officialKick:'Corrida oficial',
+    officialNote:'Esta corrida cuenta. Tus padrinos pagan por los puntos que anotes, y solo tienes una.',
+    alreadyRun:'Tu corrida oficial ya está hecha: <b>{L} rondas, {P} puntos</b>. Sigue practicando si quieres — esa puntuación es final.',
+    confirmOfficial:'Esta es tu corrida oficial. Tus padrinos pagan por los puntos que anotes, y solo tienes una. ¿Listo?',
+    practiceOnly:'Corrida de práctica.',
+    recording:'Guardando tu corrida oficial…',
+    recorded:'✓ Corrida oficial guardada — {P} puntos.',
+    wasAlready:'Tu corrida oficial ya estaba guardada. Esta fue práctica.',
+    wrongLink:'Este enlace no puede guardar una corrida oficial — pídele a tu entrenador tu propio enlace.',
+    noServer:'No se pudo conectar al servidor — habla con tu entrenador antes de jugar otra vez.',
     endShort:'Todo el mundo empieza aquí. Otra vez — sale rápido.',
     endMid:'Esa es la cancha entera en tu cabeza. Casi entera.',
     endLong:'Te sabes esta cancha. Ve a tirarla.'
@@ -279,6 +328,7 @@ function showBest(){
 }
 
 function start(){
+  if (IS_OFFICIAL && !confirm(T('confirmOfficial'))) return;
   tone(660);
   $('intro').style.display = 'none';
   $('end').style.display = 'none';
@@ -357,12 +407,142 @@ function finish(){
   }
 
   timers.push(setTimeout(function(){
+    var pts = pointsFor(held);
     $('endNum').textContent = held;
+    $('endPts').textContent = pts + ' ' + T('pointsWord');
     $('endNote').textContent = held >= 8 ? T('endLong') : held >= 4 ? T('endMid') : T('endShort');
     $('play').style.display = 'none';
     $('end').style.display = 'flex';
     showBest();
+    record(held, pts);
   }, 1200));
+}
+
+// Someone who arrived from a challenge should land back on it.
+(function setLinks(){
+  if (CHALLENGE_ID && PLAYER_ID){
+    var back = HOME + '/?c=' + encodeURIComponent(CHALLENGE_ID) +
+               '&p=' + encodeURIComponent(PLAYER_ID) +
+               (RUN_KEY ? '&k=' + encodeURIComponent(RUN_KEY) : '');
+    $('backLink').href = back;
+    $('quitBtn').href = back;
+    document.querySelectorAll('.line').forEach(function(a){ a.href = back; });
+  } else if (TRYOUT){
+    var t = HOME + '/?tryout=' + encodeURIComponent(TRYOUT);
+    $('backLink').href = t;
+    $('quitBtn').href = t;
+    document.querySelectorAll('.line').forEach(function(a){ a.href = t; });
+  }
+})();
+
+// An official run is announced before it starts, and refused if one
+// already exists.
+(function initOfficial(){
+  if (!IS_OFFICIAL) return;
+
+  $('startBtn').textContent = T('startOfficial');
+  $('officialBanner').style.display = 'block';
+
+  fetch(SB_URL + '/rest/v1/players?id=eq.' + encodeURIComponent(PLAYER_ID) + '&select=name', {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(rows){ if (rows && rows.length) $('obPlayer').textContent = rows[0].name; })
+  .catch(function(){});
+
+  fetch(SB_URL + '/rest/v1/challenge_runs?challenge_id=eq.' + encodeURIComponent(CHALLENGE_ID) +
+        '&player_id=eq.' + encodeURIComponent(PLAYER_ID) + '&select=level_reached,points', {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(rows){
+    if (rows && rows.length){
+      $('obNote').innerHTML = T('alreadyRun', { L: rows[0].level_reached, P: rows[0].points });
+      $('startBtn').textContent = T('startPractice');
+      IS_OFFICIAL = false;
+    }
+  })
+  .catch(function(){});
+})();
+
+// ---- recording ----
+// Free play records nothing at all. A practice run inside a challenge
+// updates the best a sponsor sees. An official run is written through
+// the database function, which checks the key and works out the
+// points itself.
+function record(held, pts){
+  var st = $('saveStatus');
+
+  if (!CHALLENGE_ID || !PLAYER_ID){ st.textContent = ''; return; }
+
+  if (!IS_OFFICIAL){
+    st.style.color = '#7d8ba3';
+    st.textContent = T('practiceOnly');
+    recordPractice(held);
+    return;
+  }
+
+  st.style.color = 'var(--mute)';
+  st.textContent = T('recording');
+
+  fetch(SB_URL + '/rest/v1/rpc/record_official_run', {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      p_challenge: CHALLENGE_ID, p_player: PLAYER_ID, p_key: RUN_KEY,
+      p_level: held, p_points: pts, p_time: null, p_game: GAME
+    })
+  })
+  .then(function(r){ if (!r.ok) throw new Error('bad'); return r.json(); })
+  .then(function(out){
+    if (out && out.ok){
+      st.style.color = 'var(--good)';
+      st.textContent = T('recorded', { P: pts });
+      IS_OFFICIAL = false;
+      return;
+    }
+    if (out && out.reason === 'already'){
+      st.style.color = 'var(--gold)';
+      st.textContent = T('wasAlready');
+      IS_OFFICIAL = false;
+      return;
+    }
+    st.style.color = 'var(--bad)';
+    st.textContent = T('wrongLink');
+  })
+  .catch(function(e){
+    console.error('Run write:', e);
+    st.style.color = 'var(--bad)';
+    st.textContent = T('noServer');
+  });
+}
+
+function recordPractice(held){
+  var base = SB_URL + '/rest/v1/challenge_practice';
+  var head = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
+               'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+  var filter = '?challenge_id=eq.' + encodeURIComponent(CHALLENGE_ID) +
+               '&player_id=eq.' + encodeURIComponent(PLAYER_ID);
+
+  fetch(base + filter + '&select=best_level,runs', {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(rows){
+    if (rows && rows.length){
+      var row = rows[0];
+      return fetch(base + filter, { method:'PATCH', headers:head, body: JSON.stringify({
+        best_level: Math.max(row.best_level || 0, held),
+        runs: (row.runs || 0) + 1,
+        updated_at: new Date().toISOString()
+      })});
+    }
+    return fetch(base, { method:'POST', headers:head, body: JSON.stringify({
+      challenge_id: CHALLENGE_ID, player_id: PLAYER_ID, game: GAME,
+      best_level: held, runs: 1
+    })});
+  })
+  .catch(function(e){ console.error('Practice:', e); });
 }
 
 $('startBtn').addEventListener('click', start);
