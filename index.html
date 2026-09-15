@@ -29,6 +29,20 @@ h1{font-size:clamp(2.6rem,9vw,4.4rem);font-weight:800;letter-spacing:-.04em;line
 .lede{color:#E4DCEA;margin:0;max-width:60ch}
 
 /* the scoring table, which is the thing people came for */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:28px 0 14px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+.way{display:block;padding:22px;border-radius:18px;text-decoration:none;color:var(--paper);
+  border:1px solid var(--line);background:var(--panel)}
+.way.phone{border-color:rgba(232,178,58,.45);background:rgba(232,178,58,.07)}
+.way.phone:active{transform:scale(.995)}
+.wkick{display:block;font-size:.62rem;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--leather);margin-bottom:8px}
+.way.phone .wkick{color:var(--gold)}
+.wname{display:block;font-size:1.5rem;font-weight:800;letter-spacing:-.03em;line-height:1;margin-bottom:10px}
+.wdesc{display:block;color:var(--mute);font-size:.92rem;line-height:1.55}
+.wgo{display:block;margin-top:14px;font-size:.85rem;font-weight:800;color:var(--gold)}
+.way.court .wgo{color:var(--mute)}
+.twonote{color:var(--mute);font-size:.9rem;max-width:64ch;margin:0 0 6px}
+
 .score{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,3vw,26px);margin:30px 0}
 .score h2{margin:0 0 14px;font-size:1.05rem;font-weight:800}
 .srow{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -79,6 +93,23 @@ footer a{color:var(--mute)}
 </div></header>
 
 <div class="wrap">
+
+  <div class="two">
+    <a class="way phone" href="spots.html">
+      <span class="wkick" data-t="w1kick">On a phone</span>
+      <span class="wname" data-t="w1name">The Spots</span>
+      <span class="wdesc" data-t="w1desc">The same six stations as a memory chain. Sponsors pledge per point, each player takes one official run, and it can happen this week — no gym, no date, no scorekeepers.</span>
+      <span class="wgo" data-t="w1go">Play it now →</span>
+    </a>
+    <div class="way court">
+      <span class="wkick" data-t="w2kick">On your court</span>
+      <span class="wname" data-t="w2name">Cash Rack</span>
+      <span class="wdesc" data-t="w2desc">The real thing. Eighteen shots against a clock, your scorekeepers counting, families in the stands. Same pledges, same invoicing — an event rather than an app.</span>
+      <span class="wgo" data-t="w2go">Rules below ↓</span>
+    </div>
+  </div>
+
+  <p class="twonote" data-t="twonote">Both are pledged the same way and both run through the same platform. A program can do one, or run the phone challenge in the off-season and the court event in season — the floor is the same either way.</p>
 
   <div class="score">
     <h2 data-t="scoreTitle">The scoring</h2>
@@ -165,6 +196,13 @@ var T = {
     kick:'A Basketball Money format',
     tag:'The shooting event that pays.',
     lede:"A timed shooting contest built to raise money. Players find sponsors who pledge per point, each player shoots once, and every dollar pledged is the program's. Any coach can run it, anywhere, with their own scorekeepers.",
+    w1kick:'On a phone', w1name:'The Spots',
+    w1desc:'The same six stations as a memory chain. Sponsors pledge per point, each player takes one official run, and it can happen this week — no gym, no date, no scorekeepers.',
+    w1go:'Play it now →',
+    w2kick:'On your court', w2name:'Cash Rack',
+    w2desc:'The real thing. Eighteen shots against a clock, your scorekeepers counting, families in the stands. Same pledges, same invoicing — an event rather than an app.',
+    w2go:'Rules below ↓',
+    twonote:'Both are pledged the same way and both run through the same platform. A program can do one, or run the phone challenge in the off-season and the court event in season — the floor is the same either way.',
     scoreTitle:'The scoring',
     sc1:'Every shot attempted', sc2:'A made three', sc2v:'3 more', sc3:'A made foul shot', sc3v:'2 more',
     scNote:'So a made three is worth 4. A made foul shot is worth 3. A missed shot still scores 1.',
@@ -204,6 +242,13 @@ var T = {
     kick:'Un formato de Basketball Money',
     tag:'El evento de tiro que recauda.',
     lede:'Un concurso de tiro con reloj, hecho para recaudar fondos. Los jugadores consiguen padrinos que prometen por punto, cada jugador tira una sola vez, y cada dólar prometido es del programa. Cualquier entrenador puede correrlo, donde sea, con sus propios anotadores.',
+    w1kick:'En el celular', w1name:'The Spots',
+    w1desc:'Las mismas seis estaciones como cadena de memoria. Los padrinos prometen por punto, cada jugador hace una corrida oficial, y puede ser esta misma semana — sin cancha, sin fecha, sin anotadores.',
+    w1go:'Juégalo ahora →',
+    w2kick:'En tu cancha', w2name:'Cash Rack',
+    w2desc:'Lo real. Dieciocho tiros contra el reloj, tus anotadores contando, las familias en las gradas. Las mismas promesas, la misma facturación — un evento, no una aplicación.',
+    w2go:'Reglas abajo ↓',
+    twonote:'Los dos se prometen igual y los dos corren por la misma plataforma. Un programa puede hacer uno, o correr el reto del celular fuera de temporada y el evento en cancha durante la temporada — la cancha es la misma.',
     scoreTitle:'La puntuación',
     sc1:'Cada tiro intentado', sc2:'Un triple anotado', sc2v:'3 más', sc3:'Un tiro libre anotado', sc3v:'2 más',
     scNote:'Así que un triple anotado vale 4. Un tiro libre anotado vale 3. Un tiro fallado todavía vale 1.',
