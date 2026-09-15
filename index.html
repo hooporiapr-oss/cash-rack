@@ -51,12 +51,7 @@ ul{padding-left:20px;margin:0 0 1em}
 li{margin:.4em 0;color:#E4DCEA}
 .mute{color:var(--mute)}
 
-.stations{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:18px 0}
-@media(max-width:560px){.stations{grid-template-columns:repeat(2,1fr)}}
-.st{padding:14px 10px;border-radius:12px;text-align:center;border:1px solid rgba(232,178,58,.3);background:rgba(232,178,58,.06)}
-.st.line{border-color:rgba(201,96,31,.4);background:rgba(201,96,31,.08)}
-.st b{display:block;font-size:.9rem;font-weight:800}
-.st span{display:block;color:var(--mute);font-size:.74rem;margin-top:3px}
+.court{display:block;width:100%;height:auto;margin:20px 0;border-radius:16px;border:1px solid var(--line)}
 
 .money-ex{background:rgba(232,178,58,.07);border:1px solid rgba(232,178,58,.3);border-radius:14px;padding:18px;margin:18px 0}
 .money-ex b{color:var(--gold)}
@@ -101,13 +96,7 @@ footer a{color:var(--mute)}
   <section>
     <h2 data-t="setupTitle">The setup</h2>
     <p data-t="setupP">Five stations around the floor. Three shots at each — fifteen shots in total. Spread the three-point spots so a player has to move.</p>
-    <div class="stations">
-      <div class="st"><b data-t="st1">Corner</b><span data-t="stThree">3-point</span></div>
-      <div class="st"><b data-t="st2">Wing</b><span data-t="stThree2">3-point</span></div>
-      <div class="st"><b data-t="st3">Top</b><span data-t="stThree3">3-point</span></div>
-      <div class="st"><b data-t="st4">Wing</b><span data-t="stThree4">3-point</span></div>
-      <div class="st line"><b data-t="st5">Foul line</b><span data-t="stFoul">Free throws</span></div>
-    </div>
+    <img class="court" src="court.svg" alt="Half court with four three-point spots numbered 1 to 4 and a foul line spot numbered 5">
     <p class="mute" data-t="setupNote">Wherever the arc allows in your gym. Four three-point spots, one foul line.</p>
   </section>
 
@@ -182,8 +171,6 @@ var T = {
     floorNote:'That floor is deliberate. In a fundraiser, no player should score zero and no sponsor should pledge for nothing. Effort counts, shooting wins.',
     setupTitle:'The setup',
     setupP:'Five stations around the floor. Three shots at each — fifteen shots in total. Spread the three-point spots so a player has to move.',
-    st1:'Corner', st2:'Wing', st3:'Top', st4:'Wing', st5:'Foul line',
-    stThree:'3-point', stThree2:'3-point', stThree3:'3-point', stThree4:'3-point', stFoul:'Free throws',
     setupNote:'Wherever the arc allows in your gym. Four three-point spots, one foul line.',
     clockTitle:'The clock',
     clockP:'The coach sets the time limit. Pick something tight enough that finishing all fifteen shots takes real purpose, but not so tight that nobody does.',
@@ -222,8 +209,6 @@ var T = {
     floorNote:'Ese piso es a propósito. En una recaudación, ningún jugador debe quedar en cero y ningún padrino debe prometer por nada. El esfuerzo cuenta, el tiro gana.',
     setupTitle:'El montaje',
     setupP:'Cinco estaciones alrededor de la cancha. Tres tiros en cada una — quince tiros en total. Separa los puntos de tres para que el jugador tenga que moverse.',
-    st1:'Esquina', st2:'Ala', st3:'Tope', st4:'Ala', st5:'Tiros libres',
-    stThree:'Triple', stThree2:'Triple', stThree3:'Triple', stThree4:'Triple', stFoul:'Desde la línea',
     setupNote:'Donde te lo permita el arco de tu cancha. Cuatro puntos de tres, una línea de tiros libres.',
     clockTitle:'El reloj',
     clockP:'El entrenador decide el tiempo límite. Escoge algo apretado, que lograr los quince tiros requiera de verdad moverse, pero no tanto que nadie los complete.',
