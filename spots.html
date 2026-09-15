@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Cash Rack — learn the spots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#160E1C;--panel:#1D1426;--line:#3A2647;--gold:#E8B23A;--leather:#C9601F;--paper:#F7F3EF;--mute:#B7A8C2;--good:#4ED6A1;--bad:#FF5C7A}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:var(--paper);font-family:Archivo,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;overflow:hidden}
+
+/* ---------- intro ---------- */
+#intro{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px 18px;overflow-y:auto;background:radial-gradient(ellipse at center,#241224 0%,#0d0810 70%)}
+.mark{font-size:.66rem;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:var(--leather);margin-bottom:10px}
+.mark em{font-style:normal;color:var(--gold)}
+h1{font-size:clamp(2rem,8vw,3rem);font-weight:800;letter-spacing:-.035em;line-height:1;margin:0 0 10px;text-align:center}
+h1 span{color:var(--gold)}
+.lede{color:#E4DCEA;max-width:44ch;text-align:center;margin:0 0 22px;line-height:1.55}
+.big{width:100%;max-width:400px;padding:19px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--gold),#FF8C42);
+  color:#20140B;font-family:inherit;font-size:1.05rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+  box-shadow:0 0 38px rgba(232,178,58,.45);margin-bottom:11px}
+.line{width:100%;max-width:400px;padding:15px;border:1px solid var(--line);border-radius:14px;background:transparent;
+  color:var(--paper);font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer;text-decoration:none;
+  display:flex;align-items:center;justify-content:center}
+.best{margin-top:16px;color:var(--mute);font-size:.88rem}
+.best b{color:var(--gold)}
+#lang{position:fixed;top:14px;right:14px;z-index:70;background:rgba(0,0,0,.5);border:1px solid var(--line);
+  color:var(--mute);border-radius:999px;padding:6px 13px;font:inherit;font-size:.76rem;font-weight:700;cursor:pointer}
+.back{position:fixed;top:14px;left:14px;z-index:70;background:rgba(0,0,0,.5);border:1px solid var(--line);
+  color:var(--mute);border-radius:999px;padding:6px 13px;font-size:.76rem;font-weight:700;text-decoration:none}
+
+/* ---------- play ---------- */
+#play{position:fixed;inset:0;display:none;flex-direction:column;background:var(--ink)}
+.bar{display:flex;justify-content:center;gap:8px;padding:12px 10px 6px;flex-shrink:0}
+.cell{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:7px 16px;text-align:center;min-width:84px}
+.cell.gold{border-color:rgba(232,178,58,.45);background:rgba(232,178,58,.08)}
+.cell b{display:block;font-size:1.35rem;font-weight:800;line-height:1}
+.cell.gold b{color:var(--gold)}
+.cell span{display:block;font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-top:3px}
+
+#msg{text-align:center;font-size:1.05rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  min-height:34px;display:flex;align-items:center;justify-content:center;padding:0 12px;flex-shrink:0}
+#msg.watch{color:var(--gold)}#msg.go{color:var(--good)}#msg.miss{color:var(--bad)}
+
+.courtwrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:8px;position:relative}
+#court{position:relative;width:100%;max-width:820px}
+#court svg{display:block;width:100%;height:auto}
+
+/* The six spots sit over the drawing, positioned as percentages so
+   they hold their places at any size. */
+.spot{position:absolute;transform:translate(-50%,-50%);border-radius:50%;cursor:pointer;
+  display:grid;place-content:center;font-weight:800;
+  background:radial-gradient(circle at 38% 34%,#5A4630,#2E2318);
+  border:2px solid rgba(232,178,58,.35);color:rgba(255,255,255,.28);
+  transition:transform .1s,box-shadow .1s,background .1s,border-color .1s}
+.spot.lit{background:radial-gradient(circle at 38% 34%,#FFE9A8,#E8B23A 55%,#B9812A);
+  border-color:#FFF0C4;color:#2A1A00;box-shadow:0 0 34px rgba(232,178,58,.85);transform:translate(-50%,-50%) scale(1.09)}
+.spot.foul.lit{background:radial-gradient(circle at 38% 34%,#FFD0A6,#C9601F 55%,#8E3F11);
+  border-color:#FFD9B8;color:#2A1000;box-shadow:0 0 34px rgba(201,96,31,.85)}
+.spot.good{background:radial-gradient(circle at 38% 34%,#B9FFE4,#4ED6A1 55%,#2E9A72);border-color:#D6FFF0;color:#04281C}
+.spot.bad{background:radial-gradient(circle at 38% 34%,#FFC2D0,#FF5C7A 55%,#B32B47);border-color:#FFD9E1;color:#33000D}
+.spot.ready{cursor:pointer}
+
+#controls{display:flex;justify-content:center;gap:10px;padding:8px 16px 14px;flex-shrink:0}
+.ctrl{padding:13px 22px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.4);color:var(--paper);
+  font-family:inherit;font-size:.9rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  cursor:pointer;text-decoration:none;display:flex;align-items:center}
+
+/* ---------- end ---------- */
+#end{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:26px 18px;text-align:center;background:radial-gradient(ellipse at center,#241224 0%,#0d0810 70%);overflow-y:auto}
+.num{font-size:clamp(4rem,20vw,7rem);font-weight:800;letter-spacing:-.05em;line-height:.9;color:var(--gold)}
+.numlbl{font-size:.7rem;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin-top:10px}
+.endnote{color:var(--mute);margin:18px 0 22px;max-width:40ch;line-height:1.55}
+</style>
+</head>
+<body>
+
+<a class="back" href="index.html" id="backLink">← Back</a>
+<button id="lang" onclick="flip()">ES</button>
+
+<div id="intro">
+  <div class="mark">Cash <em>Rack</em></div>
+  <h1 data-t="h1">Learn the <span data-t="h1b">spots</span></h1>
+  <p class="lede" data-t="lede">The six stations light up in order. Watch, then tap them back the same way. Every round adds one more. Know the floor before you shoot it for real.</p>
+  <button class="big" id="startBtn" data-t="start">▶ Start</button>
+  <a class="line" href="index.html" data-t="rules">Read the Cash Rack rules</a>
+  <div class="best" id="bestLine"></div>
+</div>
+
+<div id="play">
+  <div class="bar">
+    <div class="cell"><b id="hRound">0</b><span data-t="lRound">Round</span></div>
+    <div class="cell gold"><b id="hBest">0</b><span data-t="lBest">Best</span></div>
+  </div>
+  <div id="msg" class="watch"></div>
+  <div class="courtwrap"><div id="court"></div></div>
+  <div id="controls">
+    <a class="ctrl" href="index.html" id="quitBtn" data-t="quit">← Quit</a>
+  </div>
+</div>
+
+<div id="end">
+  <div class="num" id="endNum">0</div>
+  <div class="numlbl" data-t="endLbl">Longest chain</div>
+  <p class="endnote" id="endNote"></p>
+  <button class="big" id="againBtn" data-t="again">▶ Go again</button>
+  <a class="line" href="index.html" data-t="rules2">Read the Cash Rack rules</a>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CASH RACK — learn the spots.
+//
+//  Free practice, and deliberately not a fundraiser. Nothing is
+//  recorded anywhere and no pledge rides on it. The point is that a
+//  player arrives at the real event already knowing where the six
+//  stations are and the order they are shot in.
+//
+//  Same escalating chain as the memory challenges, but the targets
+//  are the Cash Rack floor rather than an abstract grid.
+// ══════════════════════════════════════════════════════
+
+var $ = function(id){ return document.getElementById(id); };
+
+var LANG = 'en';
+try { LANG = localStorage.getItem('cfh_lang') || ((navigator.language||'').toLowerCase().startsWith('es') ? 'es' : 'en'); } catch(e){}
+
+var S = {
+  en:{
+    h1:'Learn the ', h1b:'spots',
+    lede:'The six stations light up in order. Watch, then tap them back the same way. Every round adds one more. Know the floor before you shoot it for real.',
+    start:'▶ Start', again:'▶ Go again',
+    rules:'Read the Cash Rack rules', rules2:'Read the Cash Rack rules',
+    back:'← Back', quit:'← Quit',
+    lRound:'Round', lBest:'Best',
+    ready:'Watch the floor', watch:'Watch', yourTurn:'Tap them back', nice:'✅ Good',
+    wrong:'Wrong spot', endLbl:'Longest chain',
+    bestLine:'Your best so far: <b>{B}</b>',
+    endShort:'Everyone starts here. Go again — it comes quickly.',
+    endMid:'That is the whole floor held in your head. Most of it, anyway.',
+    endLong:'You know this floor. Go shoot it.'
+  },
+  es:{
+    h1:'Apréndete los ', h1b:'puntos',
+    lede:'Las seis estaciones se encienden en orden. Observa y tócalas de vuelta igual. Cada ronda añade una más. Conoce la cancha antes de tirarla de verdad.',
+    start:'▶ Empezar', again:'▶ Otra vez',
+    rules:'Lee las reglas de Cash Rack', rules2:'Lee las reglas de Cash Rack',
+    back:'← Atrás', quit:'← Salir',
+    lRound:'Ronda', lBest:'Mejor',
+    ready:'Observa la cancha', watch:'Observa', yourTurn:'Tócalas de vuelta', nice:'✅ Bien',
+    wrong:'Punto equivocado', endLbl:'Cadena más larga',
+    bestLine:'Tu mejor hasta ahora: <b>{B}</b>',
+    endShort:'Todo el mundo empieza aquí. Otra vez — sale rápido.',
+    endMid:'Esa es la cancha entera en tu cabeza. Casi entera.',
+    endLong:'Te sabes esta cancha. Ve a tirarla.'
+  }
+};
+function T(k, v){
+  var out = (S[LANG] && S[LANG][k]) || S.en[k] || k;
+  if (v) Object.keys(v).forEach(function(x){ out = out.split('{'+x+'}').join(v[x]); });
+  return out;
+}
+function paint(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-t]').forEach(function(el){
+    var v = T(el.getAttribute('data-t'));
+    if (v) el.textContent = v;
+  });
+  $('lang').textContent = LANG === 'en' ? 'ES' : 'EN';
+  showBest();
+}
+function flip(){
+  LANG = LANG === 'en' ? 'es' : 'en';
+  try { localStorage.setItem('cfh_lang', LANG); } catch(e){}
+  paint();
+}
+
+// ---- the floor ----
+// The same court as the diagram on the rules page, so the shape a
+// player learns here is the shape they will stand on.
+var COURT = '<svg viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg">' +
+  '<defs><linearGradient id="fl" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#3A1C0B"/><stop offset="100%" stop-color="#2B1810"/>' +
+  '</linearGradient></defs>' +
+  '<g transform="translate(50,40)">' +
+    '<rect x="0" y="0" width="800" height="560" rx="10" fill="url(#fl)" stroke="rgba(255,178,116,.35)" stroke-width="3"/>' +
+    '<line x1="0" y1="557" x2="800" y2="557" stroke="rgba(255,178,116,.6)" stroke-width="6"/>' +
+    '<rect x="272" y="253" width="256" height="304" fill="rgba(232,178,58,.05)" stroke="rgba(255,178,116,.4)" stroke-width="3"/>' +
+    '<circle cx="400" cy="253" r="96" fill="none" stroke="rgba(255,178,116,.4)" stroke-width="3"/>' +
+    '<line x1="272" y1="253" x2="528" y2="253" stroke="rgba(255,178,116,.55)" stroke-width="4"/>' +
+    '<path d="M 48 557 L 48 369.8 A 380 380 0 0 1 752 369.8 L 752 557" fill="none" stroke="rgba(255,178,116,.5)" stroke-width="3"/>' +
+    '<line x1="352" y1="533" x2="448" y2="533" stroke="rgba(255,178,116,.5)" stroke-width="5"/>' +
+    '<circle cx="400" cy="513" r="12" fill="none" stroke="rgba(255,178,116,.6)" stroke-width="3"/>' +
+    '<path d="M 336 513 A 64 64 0 0 0 464 513" fill="none" stroke="rgba(255,178,116,.22)" stroke-width="2"/>' +
+  '</g></svg>';
+
+// Positions as percentages of the drawing, matching court.svg exactly.
+var SPOTS = [
+  { n:1, x:(50+36)/900,  y:(40+500)/640 },
+  { n:2, x:(50+76)/900,  y:(40+269)/640 },
+  { n:3, x:(50+400)/900, y:(40+107)/640 },
+  { n:4, x:(50+724)/900, y:(40+269)/640 },
+  { n:5, x:(50+764)/900, y:(40+500)/640 },
+  { n:6, x:(50+400)/900, y:(40+253)/640, foul:true }
+];
+
+var court = $('court');
+var els = [];
+
+function buildCourt(){
+  court.innerHTML = COURT;
+  els = [];
+  SPOTS.forEach(function(s, i){
+    var d = document.createElement('div');
+    d.className = 'spot' + (s.foul ? ' foul' : '');
+    d.style.left = (s.x * 100) + '%';
+    d.style.top = (s.y * 100) + '%';
+    d.textContent = s.n;
+    d.addEventListener('pointerdown', function(e){ e.preventDefault(); tap(i); });
+    court.appendChild(d);
+    els.push(d);
+  });
+  sizeSpots();
+}
+
+// The markers scale with the drawing rather than being fixed, so they
+// stay in proportion on a phone and on a laptop.
+function sizeSpots(){
+  var w = court.clientWidth;
+  if (!w) { requestAnimationFrame(sizeSpots); return; }
+  var d = Math.max(30, Math.round(w * 0.072));
+  els.forEach(function(el){
+    el.style.width = d + 'px';
+    el.style.height = d + 'px';
+    el.style.fontSize = Math.round(d * 0.42) + 'px';
+  });
+}
+window.addEventListener('resize', sizeSpots);
+window.addEventListener('orientationchange', function(){ setTimeout(sizeSpots, 200); });
+
+// ---- sound ----
+var actx = null;
+function tone(f){
+  if (!actx) { try { actx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){ return; } }
+  try {
+    if (actx.state === 'suspended') actx.resume();
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(.16, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.01, actx.currentTime + .13);
+    o.start(); o.stop(actx.currentTime + .14);
+  } catch(e){}
+}
+
+// ---- the run ----
+var chain = [], idx = 0, round = 0, best = 0, phase = 'idle', timers = [];
+var BEST_KEY = 'cr-spots-best';
+
+function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
+function msg(t, c){ var e = $('msg'); e.textContent = t; e.className = c || 'watch'; }
+function clearMarks(){ els.forEach(function(el){ el.classList.remove('lit','good','bad','ready'); }); }
+
+function loadBest(){
+  best = 0;
+  try { best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; } catch(e){}
+}
+function showBest(){
+  $('bestLine').innerHTML = best > 0 ? T('bestLine', { B: best }) : '';
+  $('hBest').textContent = best;
+}
+
+function start(){
+  tone(660);
+  $('intro').style.display = 'none';
+  $('end').style.display = 'none';
+  $('play').style.display = 'flex';
+  buildCourt();
+  chain = []; round = 0; phase = 'running';
+  $('hRound').textContent = '0';
+  msg(T('ready'), 'watch');
+  timers.push(setTimeout(nextRound, 900));
+}
+
+function nextRound(){
+  if (phase !== 'running') return;
+  round++;
+  idx = 0;
+  $('hRound').textContent = round;
+  // The chain keeps everything from before and gains one more spot,
+  // so a player is rehearsing an order rather than single positions.
+  chain.push(Math.floor(Math.random() * SPOTS.length));
+  clearMarks();
+  msg(T('watch'), 'watch');
+  timers.push(setTimeout(function(){ playChain(0); }, 550));
+}
+
+function playChain(i){
+  if (phase !== 'running') return;
+  if (i >= chain.length){
+    els.forEach(function(el){ el.classList.add('ready'); });
+    msg(T('yourTurn'), 'go');
+    return;
+  }
+  var el = els[chain[i]];
+  el.classList.add('lit');
+  tone(chain[i] === 5 ? 480 : 700 + chain[i] * 40);
+  timers.push(setTimeout(function(){
+    el.classList.remove('lit');
+    timers.push(setTimeout(function(){ playChain(i + 1); }, 170));
+  }, 420));
+}
+
+function tap(i){
+  if (phase !== 'running') return;
+  if (!els[i].classList.contains('ready')) return;
+
+  if (i === chain[idx]){
+    els[i].classList.add('good');
+    tone(900);
+    setTimeout(function(){ els[i].classList.remove('good'); }, 220);
+    idx++;
+    if (idx >= chain.length){
+      els.forEach(function(el){ el.classList.remove('ready'); });
+      msg(T('nice'), 'go');
+      timers.push(setTimeout(nextRound, 700));
+    }
+  } else {
+    els[i].classList.add('bad');
+    tone(200);
+    // Show what it should have been — a miss with no explanation
+    // teaches nothing.
+    els[chain[idx]].classList.add('lit');
+    finish();
+  }
+}
+
+function finish(){
+  if (phase === 'done') return;
+  phase = 'done';
+  clearTimers();
+  els.forEach(function(el){ el.classList.remove('ready'); });
+  msg(T('wrong'), 'miss');
+
+  var held = Math.max(0, round - 1);
+  if (held > best){
+    best = held;
+    try { localStorage.setItem(BEST_KEY, String(best)); } catch(e){}
+  }
+
+  timers.push(setTimeout(function(){
+    $('endNum').textContent = held;
+    $('endNote').textContent = held >= 8 ? T('endLong') : held >= 4 ? T('endMid') : T('endShort');
+    $('play').style.display = 'none';
+    $('end').style.display = 'flex';
+    showBest();
+  }, 1200));
+}
+
+$('startBtn').addEventListener('click', start);
+$('againBtn').addEventListener('click', start);
+
+loadBest();
+paint();
+</script>
+</body>
+</html>
