@@ -233,8 +233,8 @@ function playerCard(p){
     (locked
       ? '<div class="lockline">' + T('locked') + '</div>'
       : '<div class="fields">' +
-          field(p.id, 'att', T('lAtt'), r ? r.attempts : '', 15) +
-          field(p.id, 'th',  T('lThree'), r ? r.threes : '', 12) +
+          field(p.id, 'att', T('lAtt'), r ? r.attempts : '', 18) +
+          field(p.id, 'th',  T('lThree'), r ? r.threes : '', 15) +
           field(p.id, 'ft',  T('lFoul'), r ? r.fouls : '', 3) +
           '<button class="save" id="save-' + p.id + '">' + T('save') + '</button>' +
         '</div>' +
